@@ -1,26 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
+	<head>
+		<title>three.js webgl - morph targets - face</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
+		<style>
+			body {
+				background-color: #666666;
+			}
+		</style>
+	</head>
+	<body>
 
-<head>
-	<title>ThreeD</title>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<link type="text/css" rel="stylesheet" href="main.css">
-	<style>
-		html,body {
-			touch-action: none;
-			margin: 0;
-			padding: 0;
-		} 
-	</style>
-</head>
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "../build/three.module.js",
+					"three/addons/": "./jsm/"
+				}
+			}
+		</script>
 
-<body>
+		<script type="module">
 
-	<div id="container"></div> 
-	<!-- <script type="module" src="./vr.js"></script> -->
-	<script type="module" src="./main.js"></script>
-	<!-- <script type="module" src="./main.js"></script> -->
-</body>
+			import * as THREE from 'three';
 
-</html> 
+			import Stats from 'three/addons/libs/stats.module.js';
+
+			import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+			import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+			import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
+			import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+
+			import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+			import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+			import animatejson from './custom_an/animation.json';
+			import ca2 from './custom_an/an_2.json';
+			import { v4 as uuidv4 } from 'uuid';
+			import { AnimationClip } from 'three';
+
+             uuidv4();
+            console.log(uuidv4());
+
+			init(); 
+			function init() {
+
+				let mixer;
+
+				const clock = new THREE.Clock();
+
+				const container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 20 );
+				camera.position.set( - 1.8, 0.8, 3 );
+
+				const scene = new THREE.Scene();
+
+				const renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+				container.appendChild( renderer.domElement );
+				const ktx2Loader = new KTX2Loader()
+					.setTranscoderPath( './assets/' )
+					.detectSupport( renderer );
+
+				new GLTFLoader()
+					.setKTX2Loader( ktx2Loader )
+					.setMeshoptDecoder( MeshoptDecoder )
+					.load( '/models/facecap.glb', ( gltf ) => {
+						// 
+						const custom_a1 =  AnimationClip.parse(animatejson); 
+						const custom_a2 =  AnimationClip.parse(ca2); 
+						gltf.animations.push(custom_a1);
+						gltf.animations.push(custom_a2);
+						console.log("---; ",gltf)
+
+						const mesh = gltf.scene.children[ 0 ]; 
+ 
+						scene.add( mesh );
+
+						mixer = new THREE.AnimationMixer( mesh );
+
+						var act ={};
+						for (let i = 0; i < gltf.animations.length; i++) {
+								act[gltf.animations[i].name] = gltf.animations[i];
+								console.log(gltf.animations[i].name);
+							}
+							
+						mixer.clipAction(gltf.animations[5]).play();
+
+						
+						// GUI
+
+						const head = mesh.getObjectByName( 'mesh_2' );
+						const influences = head.morphTargetInfluences; 
+						
+						console.log("--- 1",influences)
+						console.log("---",head)
+						const gui = new GUI();
+						gui.close();
+
+						for ( const [ key, value ] of Object.entries( head.morphTargetDictionary ) ) {
+
+							gui.add( influences, value, -2, 2, 0.01 )
+								.name( key.replace( 'blendShape1.', '' ) )
+								.listen();
+
+						}
+
+					} );
+
+				const environment = new RoomEnvironment( renderer );
+				const pmremGenerator = new THREE.PMREMGenerator( renderer );
+
+				scene.background = new THREE.Color( 0x666666 );
+				scene.environment = pmremGenerator.fromScene( environment ).texture;
+
+				const controls = new OrbitControls( camera, renderer.domElement ); 
+
+				const stats = new Stats();
+				container.appendChild( stats.dom );
+
+				renderer.setAnimationLoop( () => {
+
+					const delta = clock.getDelta();
+
+					if ( mixer ) {
+
+						mixer.update( delta );
+
+					}
+
+					renderer.render( scene, camera );
+
+					controls.update();
+
+					stats.update();
+
+				} );
+
+				window.addEventListener( 'resize', () => {
+
+					camera.aspect = window.innerWidth / window.innerHeight;
+					camera.updateProjectionMatrix();
+
+					renderer.setSize( window.innerWidth, window.innerHeight );
+
+				} );
+
+			}
+		</script>
+	</body>
+</html>

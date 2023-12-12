@@ -1,25 +1,12 @@
 import * as THREE from "https://threejsfundamentals.org/threejs/resources/threejs/r132/build/three.module.js";
 import { GUI } from "dat.gui";
 import { OrbitControls } from "https://unpkg.com/three@0.112/examples/jsm/controls/OrbitControls.js";
-import { FBXLoader } from "https://cdn.skypack.dev/three@0.132.2/examples/jsm/loaders/FBXLoader";
-import { GLTFLoader } from "https://cdn.skypack.dev/three@0.132.2/examples/jsm/loaders/GLTFLoader";
-import createBox from "./createBox";
 
-import { v4 as uuidv4 } from "uuid";
-import { Vector2 } from "three";
-
-uuidv4();
-// ----- three globalstates ----- //
 var scene;
 var camera;
 var renderer;
 var controls;
-// const params = { color: 0x00f00 };
 const gui = new GUI();
-var mixer;
-var clock = new THREE.Clock();
-const loader = new GLTFLoader();
-const act = {};
 
 function createScene() {
   scene = new THREE.Scene();
@@ -40,206 +27,48 @@ function createScene() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.getElementById("container").appendChild(renderer.domElement);
 
-  //   createBox(
-  //     THREE,
-  //     gui,
-  //     scene,
-  //     "cube1",
-  //     3,
-  //     3,
-  //     0.5,
-  //     0,
-  //     1.5,
-  //     0,
-  //     "stone/cobblestone_01_"
-  //   );
-  createBox(
-    THREE,
-    gui,
-    scene,
-    "cube2",
-    10,
-    0.2,
-    10,
-    0,
-    -0.1,
-    0,
-    "brick_moss/brick_moss_001_"
-  );
-  // customObj();
-
-  // loader.load("./models/LeePerrySmith.glb", function (gltf) {
-  //   // mesh = gltf.scene;
-  //   // mesh.scale.set(100, 100, 100);
-  //   scene.add(gltf.scene);
-  // });
-  loader.load("./models/facecap.glb", function (gltf) {
-    console.log(gltf);
-    scene.add(gltf.scene);
-    gltf.scene.position.set(0, 0, 0);
-    gltf.scene.scale.set(7, 7, 7);
-    mixer = new THREE.AnimationMixer(gltf.scene);
-    mixer.clipAction(gltf.animations[1]).play();
-    mixer.clipAction(gltf.scene.position.set(1, 0, 0)).play();
-  });
-
   createPostLight();
 
   camera.position.set(-3, 1, 3);
-  // camera.rotation.set(2)
 
   const ambietLight = new THREE.AmbientLight("grey", 1);
-  gui.add(ambietLight, "intensity", 0, 10);
+  ambietLight.intensity = 3;
   scene.add(ambietLight);
 
-  const cf = gui.addFolder("Camera");
-  // cf.add(camera.position, "x", -10, 10).onChange(function(){camera.lookAt(new THREE.Vector3(0, 0, 0))});
-  // cf.add(camera.position, "y", -10, 10);
-  // cf.add(camera.position, "z", -10, 10);
-  // cf.add(camera.rotation, "x", -1, 1);
-  // cf.add(camera.rotation, "y", -1, 1);
-  // cf.add(camera.rotation, "z", -1, 1);
-  cf.add(camera, "fov", 0, 100).onChange(function () {
-    camera.updateProjectionMatrix();
-  });
-  cf.add(camera, "far", 0, 100).onChange(function () {
-    camera.updateProjectionMatrix();
-  });
-  cf.add(camera, "near", 0, 100).onChange(function () {
-    camera.updateProjectionMatrix();
-  });
-  cf.add(camera, "aspect", 0, 3).onChange(function () {
-    camera.updateProjectionMatrix();
-  });
-  cf.add(camera, "zoom", 1, 5).onChange(function () {
-    camera.updateProjectionMatrix();
-  });
-
-  camera.lookAt(new THREE.Vector3(0, 0, 0));
-
-  // mouse controller
   controls = new OrbitControls(camera, renderer.domElement);
 
-  // const loader = new THREE.CubeTextureLoader();
-  // const cubeMap = loader.load([img,img,img,img,img,img]);
-  // scene.background = cubeMap;
-  // controls.minPolarAngle = 0;
-  // controls.maxPolarAngle = (80 /180) * Math.PI;
-  // controls.autoRotate = false;
-  // controls.autoRotateSpeet = 3;
-
-  // ----- gui controller ----- //
-
-  // const fp = gui.addFolder('position');
-  // const fc = gui.addFolder('color');
-  // fp.add(scene.getObjectByName("cube1").position,'x',-5,5);
-  // fc.addColor(params,'color').onChange(function() {scene.getObjectByName("cube1").material.color.set(params.color)});
-
-  // ----- Helpers ----- //
-
-  // around
-  // const gridHelper = new THREE.GridHelper(5,10,'orange','grey');
-  // scene.add(gridHelper);
-
-  // arrow --->
-  // const direction = new THREE.Vector3(0,5,5);
-  // direction.normalize()
-  // const origin = new THREE.Vector3(0,0,0);
-
-  // const arrowHelper = new THREE.ArrowHelper(direction,origin,1,'red');
-  // scene.add(arrowHelper);
-
-  // x,y,z line
   const axesHelper = new THREE.AxesHelper(5);
   scene.add(axesHelper);
 
-  // camera
-  // const camera2 = new THREE.PerspectiveCamera( 5, window.innerWidth / window.innerHeight, 1, 20 );
-  // camera2.position.x = 1;
-  // camera2.position.y = 1;
-  // camera2.position.z = 2;
-  // camera2.lookAt(new THREE.Vector3(0,0,0));
-  // const cameraHelper = new THREE.CameraHelper(camera2);
-
-  // scene.add(cameraHelper);
-
-  // keyboard controlller
-  document.addEventListener("keydown", function (event) {
-    switch (event.keyCode) {
-      case 37:
-        (scene.getObjectByName("cube1").position.x += -1),
-          (scene.getObjectByName("cube1").rotation.y += -1);
-        break;
-      case 38:
-        scene.getObjectByName("cube1").position.x += 1;
-        break;
-      default:
-        break;
-    }
-  });
-  loader.load(
-    "./models/Soldier.glb",
-    function (gltf) {
-      console.log(gltf);
-      // scene.add(gltf.scene);
-      gltf.scene.position.set(0, 0.01, 0);
-      mixer = new THREE.AnimationMixer(gltf.scene);
-
-      for (let i = 0; i < gltf.animations.length; i++) {
-        act[gltf.animations[i].name] = gltf.animations[i];
-      }
-      mixer.clipAction(act["Idle"]).play();
-      console.log(mixer.clipAction(act["Walk"]).isRunning());
-    },
-    function (xhr) {
-      console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-    },
-    function (error) {
-      console.log("An error happened", error);
-    }
-  );
-  document.addEventListener("keydown", _onKeyDown, false);
-  document.addEventListener("keyup", _onKeyUp, false);
+  customObj();
   render();
 }
-function _onKeyDown(event) {
-  switch (event.keyCode) {
-    case 87:
-      mixer.clipAction(act["Idle"]).stop();
-      mixer.clipAction(act["Run"]).play();
-      break;
-    case 38:
-      act = 3;
-      break;
-    default:
-      break;
-  }
-}
-function _onKeyUp(event) {
-  switch (event.keyCode) {
-    case 87:
-      mixer.clipAction(act["Run"]).stop();
-      mixer.clipAction(act["Idle"]).play();
-      break;
-    case 38:
-      act = 3;
-      break;
-    default:
-      break;
-  }
-}
-
 function render() {
   renderer.render(scene, camera);
 
   controls.update();
-  if (mixer) {
-    mixer.update(clock.getDelta());
-  }
-  // cube animation
-  // scene.getObjectByName("cube1").rotation.x += 0.01;
-  // scene.getObjectByName("cube1").rotation.z += 0.01;
   requestAnimationFrame(render);
+}
+
+function createPostLight() {
+  const spotLight = new THREE.SpotLight("white");
+  spotLight.position.set(0, 0, 6);
+  spotLight.castShadow = true;
+  spotLight.intensity = 1;
+  spotLight.shadow.mapSize.width = 4096;
+  spotLight.shadow.mapSize.height = 4096;
+  spotLight.penumbra = 1;
+
+  const spotLightHelper = new THREE.SpotLightHelper(spotLight);
+  scene.add(spotLightHelper);
+  // --
+  const cf = gui.addFolder("light");
+  cf.add(spotLight.position, "x", -5, 15).step(0.01);
+  cf.add(spotLight.position, "y", -5, 15);
+  cf.add(spotLight.position, "z", -5, 15);
+  cf.add(spotLight, "penumbra", 0, 1).step(0.01);
+
+  scene.add(spotLight);
 }
 
 function customObj() {
@@ -293,52 +122,6 @@ function customObj() {
 
   const mesh = new THREE.Mesh(geometry, material);
   scene.add(mesh);
-}
-// function createBox(name, w, h, d, x, y, z, texture) {
-//   const cubeGeometry = new THREE.BoxGeometry(w, h, d,100,100,600);
-//   const cubeMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
-//   const loader = new THREE.TextureLoader();
-//   cubeMaterial.map = loader.load("./textures/" + texture + "_disp.jpg");
-//   cubeMaterial.displacementMap = loader.load("./textures/" + texture + "_disp.jpg");
-//   cubeMaterial.aoMap = loader.load("./textures/" + texture + "_ao.jpg");
-//   cubeMaterial.normalMap = loader.load("./textures/" + texture + "_normal.jpg");
-
-//   cubeMaterial.displacementScale =0.09;
-//   cubeMaterial.displacementBias = -0.04;
-
-//   // cubeMaterial.emissive = new THREE.Color(0x00f0ff);
-//   // gui.add(cubeMaterial, "emissiveIntensity", 0, 1).step(0.01);
-//   const cubeMesh = new THREE.Mesh(cubeGeometry, cubeMaterial);
-//   cubeMesh.position.set(x, y, z);
-//   cubeMesh.castShadow = true;
-//   const cf = gui.addFolder(name);
-//   cf.add(cubeMaterial, "opacity", 0, 1).step(0.01);
-//   cf.add(cubeMaterial, "displacementScale", 0, 1).step(0.01);
-//   cf.add(cubeMaterial, "displacementBias", -10, 10).step(0.00001);
-//   cubeMaterial.transparent = true;
-//   cubeMesh.receiveShadow = true;
-//   cubeMesh.name = name;
-//   scene.add(cubeMesh);
-// }
-function createPostLight() {
-  const spotLight = new THREE.SpotLight("white");
-  spotLight.position.set(-6, 1, 6);
-  spotLight.castShadow = true;
-  spotLight.intensity = 1;
-  spotLight.shadow.mapSize.width = 4096;
-  spotLight.shadow.mapSize.height = 4096;
-  spotLight.penumbra = 1;
-
-  const spotLightHelper = new THREE.SpotLightHelper(spotLight);
-  scene.add(spotLightHelper);
-  // --
-  const cf = gui.addFolder("light");
-  cf.add(spotLight.position, "x", -5, 15).step(0.01);
-  cf.add(spotLight.position, "y", -5, 15);
-  cf.add(spotLight.position, "z", -5, 15);
-  cf.add(spotLight, "penumbra", 0, 1).step(0.01);
-
-  scene.add(spotLight);
 }
 
 createScene();
